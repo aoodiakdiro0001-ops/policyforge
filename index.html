@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PolicyForge | CSP & CORS Live Auditor & Generator</title>
+<meta name="description" content="Audit Content-Security-Policy and CORS configs, find leaked resources, generate hardened policies. Free.">
+<link rel="canonical" href="https://aoodiakdiro0001-ops.github.io/policyforge/">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0b0e17">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PolicyForge | CSP & CORS Auditor">
+<meta property="og:description" content="Analyze CSP/CORS, spot leaks, generate protection code.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Consolas,monospace}
+:root{--bg:#0b0e17;--panel:#131a30;--line:#283257;--grn:#34d399;--blu:#60a5fa;--ylw:#fbbf24;--red:#f87171;--txt:#dde4f4;--mut:#8b98b8}
+body{background:var(--bg);color:var(--txt)}
+header{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.logo{font-size:22px;font-weight:900;color:var(--blu)}
+.logo small{display:block;font-size:11px;color:var(--mut);font-weight:400}
+header select{margin-left:auto;background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:14px;padding:7px 10px;font-size:13px}
+.tabs{display:flex;gap:6px;padding:14px 16px 0;flex-wrap:wrap;max-width:1100px;margin:0 auto}
+.tabs button{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-bottom:none;padding:10px 16px;border-radius:12px 12px 0 0;cursor:pointer;font-weight:800;font-size:13px}
+.tabs button.on{background:#1c2547;color:var(--blu)}
+main{max-width:1100px;margin:0 auto;padding:18px 15px 60px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:0 14px 14px 14px;padding:22px;display:none}
+.panel.on{display:block}
+.panel h2{color:var(--blu);margin-bottom:6px;font-size:19px}
+.panel p.sub{color:var(--mut);font-size:13px;margin-bottom:12px;line-height:1.7}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;align-items:center}
+input[type=text],select,textarea{background:#0b0e17;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:10px 13px;font-size:13.5px;outline:none}
+textarea{width:100%;min-height:90px;font-family:Consolas,monospace;font-size:12.5px;direction:ltr}
+pre.out{background:#0b0e17;border:1px solid var(--line);border-radius:10px;padding:14px;font-size:12.5px;overflow:auto;max-height:420px;direction:ltr;text-align:left;white-space:pre-wrap}
+button.go{background:var(--blu);color:#06121f;border:none;padding:10px 22px;border-radius:10px;font-weight:900;cursor:pointer;font-size:14px}
+button.alt{background:transparent;color:var(--blu);border:1px solid var(--blu);padding:9px 16px;border-radius:10px;cursor:pointer;font-size:13px}
+label.chk{display:inline-flex;gap:6px;align-items:center;background:#0b0e17;border:1px solid var(--line);border-radius:18px;padding:7px 14px;font-size:13px;cursor:pointer}
+label.chk input{accent-color:var(--blu)}
+.note{background:#1c2547;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:12.5px;color:var(--mut);margin:10px 0;line-height:1.7}
+.check{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0;font-size:13px}
+.check .hd{display:flex;gap:10px;align-items:center;font-weight:800}
+.dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.p{background:var(--grn)} .w{background:var(--ylw)} .f{background:var(--red)}
+.check small{color:var(--mut);display:block;margin-top:4px;line-height:1.6}
+.check code{display:block;background:#0b0e17;border-radius:8px;padding:8px;margin-top:6px;font-size:12px;color:var(--grn);direction:ltr;text-align:left;white-space:pre-wrap}
+.grade{display:flex;align-items:center;gap:16px;margin:14px 0;flex-wrap:wrap}
+.badge{font-size:40px;font-weight:900;min-width:88px;height:88px;border-radius:18px;display:flex;align-items:center;justify-content:center;border:3px solid;padding:0 10px}
+.gA{color:var(--grn);border-color:var(--grn)} .gB{color:var(--blu);border-color:var(--blu)} .gC{color:var(--ylw);border-color:var(--ylw)} .gF{color:var(--red);border-color:var(--red)}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:12px}
+.plan{background:#0b0e17;border:1px solid var(--line);border-radius:14px;padding:20px;text-align:center}
+.plan.hot{border-color:var(--blu)}
+.plan .amt{font-size:30px;font-weight:900;color:var(--blu)}
+.plan ul{list-style:none;font-size:13px;margin:12px 0;line-height:2}
+.plan small{color:var(--mut)}
+.paybox{background:#0b0e17;border:1px solid var(--grn);border-radius:14px;padding:16px;margin-top:12px;font-size:13px}
+.paybox code{direction:ltr;display:block;font-family:monospace;font-size:12px;color:var(--grn);word-break:break-all;margin:4px 0}
+.donate{background:linear-gradient(135deg,#1c2547,#0e2a1d);border:1px solid var(--grn);border-radius:16px;padding:20px;text-align:center;margin-top:8px;font-size:13px}
+.donate .addr{background:#0b0e17;border-radius:10px;padding:10px;font-family:monospace;font-size:12px;word-break:break-all;direction:ltr;margin:6px auto;color:var(--grn);max-width:560px}
+.adslot{max-width:1100px;margin:12px auto 0;padding:0 15px;text-align:center}
+.adslot .ph{display:block;border:1px dashed var(--line);border-radius:10px;color:var(--mut);font-size:12px;padding:10px}
+footer{text-align:center;color:var(--mut);font-size:12.5px;padding:26px 16px;border-top:1px solid var(--line);line-height:2}
+footer a{color:var(--grn)}
+#toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 25px;border-radius:25px;z-index:200;display:none;font-size:14px;max-width:92vw;text-align:center}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">🛡️ PolicyForge<small data-i="tag"></small></div>
+<select id="langSel" onchange="setLang(this.value)">
+<option value="en" selected>🇬🇧 English</option><option value="tr">🇹🇷 Türkçe</option><option value="ar">🇸🇦 العربية</option>
+</select>
+</header>
+<div class="tabs" id="tabs"></div>
+<main>
+<section class="panel on" id="p-audit">
+<h2 data-i="aT"></h2><p class="sub" data-i="aS"></p>
+<div class="row"><input type="text" id="urlIn" data-i-ph="urlPh" style="flex:1;min-width:200px;direction:ltr"><button class="go" onclick="autoAudit()" data-i="btnScan"></button></div>
+<div class="note" data-i="proxyNote"></div>
+<textarea id="hdrIn" rows="5" data-i-ph="hdrPh"></textarea>
+<div class="row"><button class="go" onclick="manualAudit()" data-i="btnAnalyze"></button><button class="alt" onclick="watchSite()" data-i="btnWatch"></button></div>
+<div id="auditRes"></div>
+</section>
+<section class="panel" id="p-cors">
+<h2 data-i="cT"></h2><p class="sub" data-i="cS"></p>
+<textarea id="corsIn" rows="6" data-i-ph="corsPh"></textarea>
+<div class="row"><button class="go" onclick="auditCors()" data-i="btnCors"></button></div>
+<div id="corsRes"></div>
+</section>
+<section class="panel" id="p-gen">
+<h2 data-i="gT"></h2><p class="sub" data-i="gS"></p>
+<div class="row">
+<select id="gType"><option value="static" data-i="gtStatic"></option><option value="app" data-i="gtApp"></option><option value="api" data-i="gtApi"></option></select>
+<label class="chk"><input type="checkbox" id="gFrames"> frames</label>
+<label class="chk"><input type="checkbox" id="gAnalytics" checked> analytics</label>
+<label class="chk"><input type="checkbox" id="gFonts" checked> google fonts</label>
+<label class="chk"><input type="checkbox" id="gReport"> report-uri</label>
+</div>
+<div class="row"><input type="text" id="gExtra" data-i-ph="extraPh" style="flex:1;min-width:200px;direction:ltr"><button class="go" onclick="genPolicy()" data-i="btnGen"></button></div>
+<pre class="out" id="genOut"></pre>
+<div class="row"><button class="alt" onclick="copyTxt(document.getElementById('genOut').textContent)" data-i="btnCopy"></button><button class="alt" onclick="dlGen()" data-i="btnDl"></button></div>
+</section>
+<section class="panel" id="p-leak">
+<h2 data-i="lT"></h2><p class="sub" data-i="lS"></p>
+<div class="row"><input type="text" id="leakUrl" data-i-ph="urlPh" style="flex:1;min-width:200px;direction:ltr"><button class="go" onclick="scanLeaks()" data-i="btnLeak"></button></div>
+<div id="leakRes"></div>
+</section>
+<section class="panel" id="p-pro">
+<h2 data-i="pT"></h2><p class="sub" data-i="pS"></p>
+<div class="row"><button class="go" onclick="enableNotif()" data-i="btnNotif"></button><button class="alt" onclick="testNotif()" data-i="btnTest"></button></div>
+<div id="watchDiv"></div>
+<div id="watchList"></div>
+<div class="plans">
+<div class="plan"><b data-i="freeN"></b><div class="amt">$0</div><ul><li data-i="fF1"></li><li data-i="fF2"></li><li data-i="fF3"></li></ul></div>
+<div class="plan hot"><b data-i="proN"></b><div class="amt">$6<small>/mo</small></div><ul><li data-i="fP1"></li><li data-i="fP2"></li><li data-i="fP3"></li></ul><button class="go" onclick="proJoin()" data-i="btnJoin"></button><br><small data-i="proNote"></small></div>
+</div>
+<div class="paybox" id="payBox"></div>
+</section>
+<section class="panel" id="p-donate">
+<h2 data-i="doT"></h2><p class="sub" data-i="doS"></p>
+<div class="donate">
+<div>₿ BTC</div><div class="addr" id="btcA"></div>
+<div>₮ USDT-TRC20</div><div class="addr" id="usdtA"></div>
+<div class="row" style="justify-content:center"><button class="alt" onclick="copyTxt(document.getElementById('btcA').textContent)" data-i="btnCopy"></button></div>
+<div style="font-size:12.5px">🏦 Baran Avisat — TRY: <code dir="ltr">TR10 0001 0090 1008 4013 0050 01</code></div>
+<div style="font-size:12.5px">🏦 Baran Avisat — USD: <code dir="ltr">TR80 0001 0090 1008 4013 0050 02</code></div>
+</div>
+</section>
+</main>
+<div class="adslot" id="adFoot"><span class="ph" data-i="adHere" style="display:block;border:1px dashed var(--line);border-radius:10px;color:var(--mut);font-size:12px;padding:10px"></span></div>
+<footer><span data-i="foot"></span><br>📧 <a href="mailto:baranavisat@gmail.com">baranavisat@gmail.com</a> · 📞 <a href="tel:+905313263722" dir="ltr">+90 531 326 37 22</a> · <a href="https://wa.me/905313263722" target="_blank" rel="noopener">WhatsApp</a><br><a href="README.md" target="_blank">README</a> · MIT</footer>
+<div id="toast"></div>
+<script>
+const CONFIG={ads:{client:'',slot:'',carbonServe:'',carbonPlacement:''},
+pay:{btc:'bc1q8dhtdrndxsl70e97t8grydfe6pjue37zrhzf6c',usdt:'TLWdTjqqogkXNEXGiPWsGdjFP6ioycxeWW',name:'Baran Avisat',try:'TR10 0001 0090 1008 4013 0050 01',usd:'TR80 0001 0090 1008 4013 0050 02'},proPrice:6};
+const T={
+en:{tag:'CSP & CORS auditor + policy generator',tabA:'🔍 CSP Audit',tabC:'🌐 CORS',tabG:'⚙️ Generator',tabL:'🕵️ Leaks',tabP:'💎 Pro $6',tabDo:'💚 Donate',
+aT:'🔍 CSP Live Audit',aS:'Deep-parse any Content-Security-Policy: every directive graded, dangerous values flagged, fixes included.',
+urlPh:'https://example.com',btnScan:'Fetch & audit',proxyNote:'Auto-fetch reads proxy-visible headers only. For full accuracy paste response headers below.',
+hdrPh:'content-security-policy: ...\nx-frame-options: ...',btnAnalyze:'Analyze pasted',btnWatch:'+ Watch for changes',
+cT:'🌐 CORS Config Audit',cS:'Browsers hide live CORS headers — paste your server CORS config (Express/nginx/Apache) or observed values for a real audit.',
+corsPh:"Express: app.use(cors({origin:'*',credentials:true}))\n— or —\nAccess-Control-Allow-Origin: *\nAccess-Control-Allow-Credentials: true",
+btnCors:'Audit CORS',
+gT:'⚙️ Hardened Policy Generator',gS:'Answer 4 questions — get a strict, working CSP plus nginx/Apache/Express snippets.',
+gtStatic:'Static site',gtApp:'Web app',gtApi:'API only',extraPh:'extra allowed domains (space separated)',btnGen:'Generate',btnCopy:'Copy',btnDl:'Download',
+lT:'🕵️ Leaked-Resource Scanner',lS:'Fetches the page HTML via proxy, lists every third-party domain, and cross-checks what your CSP would block.',
+btnLeak:'Scan resources',
+pT:'💎 Change Alerts — $6/mo',pS:'Free: watch sites, browser alerts on header changes. Pro: Telegram alerts (backend required).',
+btnNotif:'Enable alerts',btnTest:'Test alert',
+freeN:'Watcher (Free)',proN:'Sentinel (Pro)',fF1:'✓ Watchlist + change alerts',fF2:'✓ Full audits',fF3:'✓ With ads',fP1:'✓ Telegram instant alerts',fP2:'✓ API / webhooks',fP3:'✓ No ads',btnJoin:'Join Pro',proNote:'Interest saved; backend required for delivery.',payT2:'💎 Pay $6/mo',wListT:'Watched sites',
+doT:'💚 Support PolicyForge',doS:'Free forever. Donations fund new analyzers.',
+adHere:'Dev & cloud ads here',foot:'PolicyForge — free auditor. Verify critical configs in staging first.',
+copied:'Copied ✅',needUrl:'Enter a valid URL ⚠️',needCfg:'Paste a config first ⚠️',fetching:'Fetching...',fetchFail:'Unreachable — paste headers manually ⚠️',added:'Watching ✅ (policy hashed)',dup:'Already watched ⚠️',permOn:'Alerts ON ✅',permOff:'Denied ⚠️',testT:'Test ✅',testB:'Alerts work.',joined:'Saved ✅',nodata:'Nothing to show yet.',dlDone:'Downloaded ✅',expDone:'Exported ✅',synced:'Synced',
+dMissing:'missing',dOk:'strict',fixL:'Fix',dirL:'Directive',valL:'Value',verdictL:'Verdict',chgT:'Policy changed! 🚨',chgB:'Headers differ from baseline',baseL:'baseline saved',wListT:'Watched sites',payT2:'💎 Pay $6/mo'},
+tr:{tag:'CSP & CORS denetçi + politika üreteci',tabA:'🔍 CSP Denetim',tabC:'🌐 CORS',tabG:'⚙️ Üretici',tabL:'🕵️ Sızıntı',tabP:'💎 Pro $6',tabDo:'💚 Destek',
+aT:'🔍 CSP Canlı Denetim',aS:'Her Content-Security-Policy yönergesini derinlemesine puanlayın.',
+urlPh:'https://ornek.com',btnScan:'Çek & denetle',proxyNote:'Otomatik çekim yalnızca proxy-görünür başlıkları okur. Tam sonuç için yapıştırın.',
+hdrPh:'content-security-policy: ...',btnAnalyze:'Yapıştırılanı analiz et',btnWatch:'+ Değişiklik izle',
+cT:'🌐 CORS Yapılandırma Denetimi',cS:'Tarayıcılar canlı CORS başlıklarını gizler — sunucu yapılandırmanızı yapıştırın, gerçek denetim alın.',
+corsPh:"Express: app.use(cors({origin:'*',credentials:true}))\n— veya —\nAccess-Control-Allow-Origin: *",
+btnCors:'CORS Denetle',
+gT:'⚙️ Sertleştirilmiş Politika Üretici',gS:'4 soru — sıkı, çalışan CSP + nginx/Apache/Express parçaları.',
+gtStatic:'Statik site',gtApp:'Web uygulaması',gtApi:'Yalnızca API',extraPh:'ekstra izinli domainler (boşlukla)',btnGen:'Üret',btnCopy:'Kopyala',btnDl:'İndir',
+lT:'🕵️ Sızan Kaynak Tarayıcı',lS:'Sayfa HTML\u2019ini proxy ile çeker, tüm üçüncü-parti domainleri listeler, CSP\u2019nizle karşılaştırır.',
+btnLeak:'Kaynakları tara',
+pT:'💎 Değişiklik Alarmları — $6/ay',pS:'Ücretsiz: site izleme + tarayıcı alarmı. Pro: Telegram (backend gerekir).',
+btnNotif:'Alarmları aç',btnTest:'Test alarmı',
+freeN:'Watcher (Ücretsiz)',proN:'Sentinel (Pro)',fF1:'✓ İzleme + değişiklik alarmı',fF2:'✓ Tam denetimler',fF3:'✓ Reklamlı',fP1:'✓ Telegram anlık',fP2:'✓ API / webhook',fP3:'✓ Reklamsız',btnJoin:'Katıl',proNote:'İlgi kaydedilir; iletim backend ister.',payT2:'💎 $6/ay öde',wListT:'İzlenen siteler',
+doT:'💚 Destekle',doS:'Sonsuza dek ücretsiz.',
+btnCopy:'Kopyala',adHere:'Reklamınız burada',foot:'PolicyForge — ücretsiz denetçi. Kritik ayarları önce testte doğrulayın.',
+copied:'Kopyalandı ✅',needUrl:'Geçerli URL girin ⚠️',needCfg:'Önce yapılandırma yapıştırın ⚠️',fetching:'Çekiliyor...',fetchFail:'Ulaşılamadı — elle yapıştırın ⚠️',added:'İzleniyor ✅',dup:'Zaten izleniyor ⚠️',permOn:'Açık ✅',permOff:'Reddedildi ⚠️',testT:'Test ✅',testB:'Çalışıyor.',joined:'Kaydedildi ✅',nodata:'Gösterilecek bir şey yok.',dlDone:'İndirildi ✅',expDone:'Dışa aktarıldı ✅',synced:'Eşleşti',
+dMissing:'eksik',dOk:'sıkı',fixL:'Düzeltme',dirL:'Yönerge',valL:'Değer',verdictL:'Karar',chgT:'Politika değişti! 🚨',chgB:'Başlıklar tabandan farklı',baseL:'taban kaydedildi',wListT:'İzlenen siteler',payT2:'💎 $6/ay öde'},
+ar:{tag:'مدقق CSP وCORS ومولد السياسات',tabA:'🔍 تدقيق CSP',tabC:'🌐 CORS',tabG:'⚙️ المولد',tabL:'🕵️ التسريبات',tabP:'💎 Pro',tabDo:'💚 ادعم',
+aT:'🔍 تدقيق CSP حي',aS:'حلّل كل توجيه في Content-Security-Policy بعمق.',
+urlPh:'https://example.com',btnScan:'اجلب ودقق',proxyNote:'الجلب التلقائي يقرأ الظاهر فقط. للدقة الصق الترويسات أدناه.',
+hdrPh:'content-security-policy: ...',btnAnalyze:'حلّل الملصق',btnWatch:'+ راقب التغييرات',
+cT:'🔍 تدقيق إعداد CORS',cS:'المتصفحات تخفي ترويسات CORS الحية — الصق إعداد الخادم لتدقيق حقيقي.',
+corsPh:"Express: app.use(cors({origin:'*',credentials:true}))",
+btnCors:'دقق CORS',
+gT:'⚙️ مولد السياسات المشددة',gS:'أجب 4 أسئلة — واحصل على CSP صارم + مقتطفات nginx/Apache/Express.',
+gtStatic:'موقع ثابت',gtApp:'تطبيق ويب',gtApi:'API فقط',extraPh:'نطاقات مسموحة إضافية',btnGen:'ولّد',btnCopy:'نسخ',btnDl:'تنزيل',
+lT:'🕵️ كاشف الموارد المسربة',lS:'يجلب HTML عبر وسيط ويسرد نطاقات الطرف الثالث ويقارنها مع CSP.',
+btnLeak:'افحص الموارد',
+pT:'💎 تنبيهات التغيير — $6/شهر',pS:'مجاناً: مراقبة + تنبيه المتصفح. Pro: تيليغرام (يحتاج backend).',
+btnNotif:'فعّل التنبيهات',btnTest:'تجريبي',
+freeN:'المراقب (مجاناً)',proN:'الحارس (Pro)',fF1:'✓ مراقبة وتنبيه',fF2:'✓ تدقيقات كاملة',fF3:'✓ مع إعلانات',fP1:'✓ تيليغرام فوري',fP2:'✓ API',fP3:'✓ بدون إعلانات',btnJoin:'اشترك',proNote:'يُحفظ الاهتمام؛ التوصيل يحتاج backend.',payT2:'💳 ادفع $6/شهر',wListT:'المواقع المراقبة',
+doT:'💚 ادعم',doS:'مجاني للأبد.',
+btnCopy:'نسخ',adHere:'مساحتك الإعلانية هنا',foot:'PolicyForge — مدقق مجاني. تحقق من الإعدادات الحرجة أولاً.',
+copied:'تم ✅',needUrl:'أدخل رابطاً صالحاً ⚠️',needCfg:'الصق الإعداد أولاً ⚠️',fetching:'جارٍ الجلب...',fetchFail:'تعذر الوصول — الصق يدوياً ⚠️',added:'تُتابَع ✅',dup:'مُتابعة ⚠️',permOn:'مفعّل ✅',permOff:'مرفوض ⚠️',testT:'تجربة ✅',testB:'يعمل.',joined:'حُفظ ✅',nodata:'لا شيء بعد.',dlDone:'نُزّل ✅',expDone:'صُدّر ✅',synced:'تمت المزامنة',
+dMissing:'مفقود',dOk:'صارم',fixL:'الإصلاح',dirL:'التوجيه',valL:'القيمة',verdictL:'الحكم',chgT:'تغيّرت السياسة! 🚨',chgB:'الترويسات تختلف عن الأساس',baseL:'حُفظ الأساس',wListT:'المواقع المراقبة',payT2:'💳 ادفع $6/شهر'}};
+let lang='en';
+const t=k=>(T[lang]&&T[lang][k])||T.en[k]||k;
+function setLang(v){lang=v;document.documentElement.lang=v;document.documentElement.dir=(v==='ar')?'rtl':'ltr';document.getElementById('langSel').value=v;
+document.querySelectorAll('[data-i]').forEach(e=>{e.textContent=t(e.dataset.i);});
+document.querySelectorAll('[data-i-ph]').forEach(e=>{e.placeholder=t(e.dataset.iPh);});
+buildTabs();renderPay();renderWatch();}
+const TABS=[['audit','tabA'],['cors','tabC'],['gen','tabG'],['leak','tabL'],['pro','tabP'],['donate','tabDo']];
+function buildTabs(){document.getElementById('tabs').innerHTML=TABS.map(x=>`<button id="tab-${x[0]}" onclick="tab('${x[0]}')">${t(x[1])}</button>`).join('');document.getElementById('tab-audit').classList.add('on');}
+function tab(w){TABS.forEach(x=>{const b=document.getElementById('tab-'+x[0]);if(b)b.classList.toggle('on',w===x[0]);document.getElementById('p-'+x[0]).classList.toggle('on',w===x[0]);});}
+function toast(m){let d=document.getElementById('toast');d.textContent=m;d.style.display='block';clearTimeout(d._h);d._h=setTimeout(()=>d.style.display='none',2200);}
+function copyTxt(x){try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(x);}catch(e){}toast(t('copied'));}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function sGet(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function sSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function parseHdr(text){const h={};String(text||'').split('\n').forEach(l=>{const i=l.indexOf(':');if(i>0){const k=l.slice(0,i).trim().toLowerCase(),v=l.slice(i+1).trim();if(k&&v)h[k]=h[k]?h[k]+'; '+v:v;}});return h;}
+function parseCSP(v){
+const out={};String(v||'').split(';').forEach(p=>{p=p.trim();if(!p)return;const i=p.search(/\s/);if(i<0)out[p.toLowerCase()]=[];else out[p.slice(0,i).toLowerCase()]=p.slice(i+1).trim().split(/\s+/);});
+return out;
+}
+function auditCSP(h){
+const csp=parseCSP(h['content-security-policy']||'');
+const out=[];let s=100;
+const put=(dir,st,w,vals,fix)=>{out.push({dir,st,w,vals:vals||[],fix});if(st!=='p')s-=w;};
+const has=d=>!!csp[d];
+const chk=(d,w,need,allowData)=>{const v=csp[d]||null;if(!v)return put(d,'f',w,[],need);
+const bad=v.filter(x=>/^(unsafe-inline|unsafe-eval|\*)/i.test(x)&&!(/nonce-|sha256-|sha384-|sha512-/i.test(x)));
+const wild=v.filter(x=>/^[*.]/.test(x)||x==='*');
+const data=!allowData&&v.some(x=>/^(data|blob):/i.test(x));
+const http=v.some(x=>/^http:/i.test(x));
+if(bad.length||wild.length||data||http)return put(d,'w',w,v,need+' (remove: '+bad.concat(wild).concat(data?['data:/blob:']:[]).concat(http?['http:']:[]).join(', ')+')');
+return put(d,'p',0,v,'');};
+chk('default-src',15,"default-src 'self'");
+chk('script-src',20,"script-src 'self' (+nonces)");
+chk('object-src',10,"object-src 'none'");
+chk('base-uri',8,"base-uri 'self'");
+chk('frame-ancestors',10,"frame-ancestors 'none' (or 'self')");
+chk('form-action',7,"form-action 'self'");
+chk('style-src',8,"style-src 'self' (+hashes for inline)");
+chk('img-src',6,"img-src 'self' data: (only if needed)",true);
+chk('connect-src',8,"connect-src 'self' (+API hosts)");
+chk('font-src',4,"font-src 'self' (+font CDNs)",true);
+chk('media-src',2,"media-src 'self'",true);
+chk('worker-src',2,"worker-src 'self'");
+s=Math.max(0,s);
+const grade=s>=90?'A+':s>=80?'A':s>=70?'B':s>=60?'C':s>=45?'D':'F';
+return {dirs:out,score:s,grade,raw:!!(h['content-security-policy'])};
+}
+function renderAudit(r,url){
+const gc=r.grade[0]==='A'?'gA':r.grade==='B'?'gB':r.grade==='C'?'gC':'gF';
+let h=`<div class="grade"><div class="badge ${gc}">${r.grade}</div><div><b>${r.score}/100</b><br><small style="color:var(--mut)">${esc(url||'')}</small></div></div>`;
+if(!r.raw)h+=`<div class="note">CSP: ${t('dMissing')}</div>`;
+h+=r.dirs.map(c=>{const cls=c.st==='p'?'p':c.st==='w'?'w':'f';
+return `<div class="check"><div class="hd"><span class="dot ${cls}"></span>${esc(c.dir)} — ${c.st==='p'?t('dOk'):c.st==='w'?'⚠':'✕'} (−${c.w})</div><small class="mono">${esc(c.vals.join(' ')).slice(0,220)}</small>${c.fix?`<code>${t('fixL')}: ${esc(c.fix)}</code>`:''}</div>`;}).join('');
+document.getElementById('auditRes').innerHTML=h;
+return r;
+}
+function norm(u){u=String(u||'').trim();if(u&&!/^[a-z][a-z0-9+.-]*:\/\//i.test(u))u='https://'+u;try{const x=new URL(u);if(x.protocol!=='http:'&&x.protocol!=='https:')return '';return x.href;}catch(e){return '';}}
+async function autoAudit(){
+const u=norm(document.getElementById('urlIn').value);
+if(!u){toast(t('needUrl'));return;}
+document.getElementById('auditRes').innerHTML='<p class="sub">'+t('fetching')+'</p>';
+try{
+const r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(u));
+if(!r.ok)throw 0;const h={};r.headers.forEach((v,k)=>{h[k.toLowerCase()]=v;});
+renderAudit(auditCSP(h),u+' (proxy)');
+}catch(e){document.getElementById('auditRes').innerHTML='<div class="note">'+t('fetchFail')+'</div>';}
+}
+function manualAudit(){renderAudit(auditCSP(parseHdr(document.getElementById('hdrIn').value)),'manual');}
+function auditCors(){
+const txt=document.getElementById('corsIn').value;
+if(!txt.trim()){toast(t('needCfg'));return;}
+const out=[];let s=100;
+const put=(n,st,w,d,f)=>{out.push({n,st,w,d,f});if(st!=='p')s-=w;};
+const L=txt.toLowerCase();
+const star=/access-control-allow-origin\s*:\s*\*|origin\s*:\s*['"]?\*/.test(L);
+const cred=/allow-credentials\s*:\s*true|credentials\s*:\s*true/.test(L);
+const nullO=/allow-origin\s*:\s*null|origin\s*:\s*['"]?null/.test(L);
+const vary=!/(^|[\s;])vary\s*:/.test(L)&&/allow-origin/.test(L);
+const meth=(txt.match(/allow-methods\s*:\s*([^\n;]+)/i)||[])[1]||'';
+const overMeth=/delete|put|patch/i.test(meth)&&/\*/.test(meth);
+const maxAge=(txt.match(/max-age\s*=\s*(\d+)/i)||[])[1];
+put('ACAO=*',star?'f':'p',25,star?'*':'ok',star?"Never use '*' with credentials; echo explicit origins":'');
+put('ACAC=true',cred?(star?'f':'w'): 'p',star&&cred?25:8,cred?'true':'—',cred?'If needed with *, switch to explicit origin + Vary: Origin':'');
+put('null origin',nullO?'f':'p',15,nullO?'null':'ok',nullO?'Remove null — sandboxed iframes can read responses':'');
+put('Vary: Origin',vary?'w':'p',8,vary?'missing':'ok',vary?'Add Vary: Origin when reflecting origins':'');
+put('Methods',overMeth?'w':'p',8,meth||'—',overMeth?'Narrow to needed methods':'');
+put('Preflight cache',maxAge&&+maxAge>86400?'w':'p',4,maxAge||'—',maxAge&&+maxAge>86400?'Lower to ≤86400':'');
+put('Credentials scope',cred&&!/same|strict/i.test(txt)?'w':'p',5,cred?'on':'off',cred?'Scope cookies to exact paths/domains':'');
+s=Math.max(0,s);
+const grade=s>=90?'A+':s>=80?'A':s>=70?'B':s>=60?'C':s>=45?'D':'F';
+const gc=grade[0]==='A'?'gA':grade==='B'?'gB':grade==='C'?'gC':'gF';
+document.getElementById('corsRes').innerHTML=`<div class="grade"><div class="badge ${gc}">${grade}</div><div><b>${s}/100</b></div></div>`+out.map(c=>{const cls=c.st==='p'?'p':c.st==='w'?'w':'f';
+return `<div class="check"><div class="hd"><span class="dot ${cls}"></span>${esc(c.n)} (−${c.w})</div><small class="mono">${esc(c.d).slice(0,160)}</small>${c.f?`<code>${t('fixL')}: ${esc(c.f)}</code>`:''}</div>`;}).join('');
+}
+function genPolicy(){
+const ty=document.getElementById('gType').value;
+const frames=document.getElementById('gFrames').checked,ana=document.getElementById('gAnalytics').checked;
+const fonts=document.getElementById('gFonts').checked,rep=document.getElementById('gReport').checked;
+const extra=document.getElementById('gExtra').value.trim().split(/\s+/).filter(Boolean);
+const ex=extra.length?' '+extra.join(' '):'';
+let csp='';
+if(ty==='static')csp=`default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:${fonts?' font-src \'self\' https://fonts.gstatic.com;':';'} object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';${rep?" report-uri /csp-report;":''}`;
+else if(ty==='app')csp=`default-src 'self'; script-src 'self'${ana?' https://www.googletagmanager.com https://www.google-analytics.com':''}${ex}; style-src 'self' 'unsafe-inline'${fonts?' https://fonts.googleapis.com':''}; img-src 'self' data: https:${fonts?' https://fonts.gstatic.com':''}; connect-src 'self'${ana?' https://www.google-analytics.com':''}${ex}; font-src 'self'${fonts?' https://fonts.gstatic.com':''}; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors ${frames?"'self'":"'none'"};${rep?' report-uri /csp-report;':''}`;
+else csp=`default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none';${rep?' report-uri /csp-report;':''}`;
+const nx=`add_header Content-Security-Policy "${csp}" always;`;
+const ap=`Header always set Content-Security-Policy "${csp}"`;
+const ex2=`app.use(helmet({contentSecurityPolicy:{directives:{defaultSrc:["'self'"],scriptSrc:["'self'"]}}})) // + reportOnly first!`;
+document.getElementById('genOut').textContent=`# Content-Security-Policy\n${csp}\n\n# nginx\n${nx}\n\n# Apache\n${ap}\n\n# Express (helmet) — test with reportOnly first!\n${ex2}`;
+}
+function dlGen(){const c=document.getElementById('genOut').textContent;if(!c.trim())return;const b=new Blob([c],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='csp-policy.txt';a.click();toast(t('dlDone'));}
+async function scanLeaks(){
+const u=norm(document.getElementById('leakUrl').value);
+if(!u){toast(t('needUrl'));return;}
+const box=document.getElementById('leakRes');box.innerHTML='<p class="sub">'+t('fetching')+'</p>';
+try{
+const r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(u));
+if(!r.ok)throw 0;const html=await r.text();
+const doms={};
+const rx=[/src\s*=\s*["']([^"'#]+)["']/gi,/(?:href\s*=\s*["']([^"'#]+)["'])/gi,/url\(\s*["']?([^"'\)]+)["']?\s*\)/gi,/fetch\s*\(\s*["']([^"']+)["']/g,/axios\.[a-z]+\s*\(\s*["']([^"']+)["']/g];
+rx.forEach(re=>{let m;while((m=re.exec(html))!==null){try{const abs=new URL(m[1],u);if(abs.host!==new URL(u).host)doms[abs.host]=(doms[abs.host]||0)+1;}catch(e){}}});
+const list=Object.keys(doms).sort((a,b)=>doms[b]-doms[a]);
+const cspRaw=(document.getElementById('hdrIn').value.match(/content-security-policy\s*:\s*([^\n]+)/i)||[])[1]||'';
+box.innerHTML=list.length?`<table class="pt">${list.slice(0,40).map(d=>{const blocked=cspRaw&&!/^\s*$/.test(cspRaw)&&d&&cspRaw.indexOf(d)<0&&cspRaw.indexOf('*')<0;return `<tr><td class="mono">${d}</td><td>×${doms[d]}</td><td>${blocked?'🚫 blocked by CSP':'✅ allowed/needed in CSP'}</td></tr>`;}).join('')}</table>`:'<p style="color:var(--mut)">—</p>';
+}catch(e){box.innerHTML='<div class="note">'+t('fetchFail')+'</div>';}
+}
+function watches(){return sGet('pf_watch',[]);} function setWatches(w){sSet('pf_watch',w);}
+function hashStr(s){let h=0;for(let i=0;i<s.length;i++)h=((h<<5)-h+s.charCodeAt(i))|0;return String(h);}
+async function watchSite(){
+const u=norm(document.getElementById('urlIn').value);
+if(!u){toast(t('needUrl'));return;}
+let base='';
+try{const r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(u));if(r.ok){const h={};r.headers.forEach((v,k)=>{h[k.toLowerCase()]=v;});base=hashStr(JSON.stringify(h));}}catch(e){}
+const w=watches();if(w.some(x=>x.u===u)){toast(t('dup'));return;}
+w.push({u,base});setWatches(w);renderWatch();toast(t('added')+' · '+t('baseL'));
+}
+function renderWatch(){const w=watches();
+document.getElementById('watchDiv').innerHTML=w.length?`<b>${t('wListT')}</b>`+w.map((x,i)=>`<div style="margin:6px 0"><span class="mono">${esc(x.u)}</span> <button onclick="unwatch(${i})" style="background:none;border:none;cursor:pointer">❌</button></div>`).join(''):'';
+}
+function unwatch(i){const w=watches();w.splice(i,1);setWatches(w);renderWatch();}
+async function pollWatch(){
+const w=watches();if(!w.length)return;
+for(const x of w){
+try{const r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(x.u));if(!r.ok)continue;
+const h={};r.headers.forEach((v,k)=>{h[k.toLowerCase()]=v;});
+const hh=hashStr(JSON.stringify(h));
+if(x.base&&hh!==x.base){x.base=hh;notify(t('chgT'),x.u+' — '+t('chgB'));}
+else if(!x.base)x.base=hh;}catch(e){}}
+setWatches(w);
+}
+function notify(ti,bo){try{if('Notification' in window&&Notification.permission==='granted')new Notification(ti,{body:String(bo).slice(0,140)});}catch(e){}}
+function enableNotif(){try{if(!('Notification' in window)){toast(t('permOff'));return;}Notification.requestPermission().then(p=>toast(p==='granted'?t('permOn'):t('permOff')));}catch(e){toast(t('permOff'));}}
+function testNotif(){notify(t('testT'),t('testB'));}
+function proJoin(){try{const L=sGet('pf_pro',[]);L.unshift({time:new Date().toLocaleString()});sSet('pf_pro',L);}catch(e){}toast(t('joined'));}
+function copyTxt(x){try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(x);}catch(e){}toast(t('copied'));}
+function renderPay(){const el=document.getElementById('payBox');if(!el)return;const P=CONFIG.pay;
+const row=(l,v)=>`<div style="margin:6px 0"><b>${l}:</b> <code style="direction:ltr">${v}</code> <button class="alt" style="padding:4px 12px;font-size:12px" onclick="copyTxt('${v.replace(/ /g,'')}')">${t('btnCopy')}</button></div>`;
+el.innerHTML=`<b>${t('payT2')}</b>`+row('₿ BTC',P.btc)+row('₮ USDT-TRC20',P.usdt)+row('🏦 '+P.name+' TRY',P.try)+row('🏦 '+P.name+' USD',P.usd);}
+function loadAds(){const A=CONFIG.ads,el=document.getElementById('adFoot');if(!el)return;
+if(A.client){el.innerHTML='<ins class="adsbygoogle" style="display:block" data-ad-client="'+A.client+'" data-ad-slot="'+(A.slot||'')+'" data-ad-format="auto"></ins>';
+if(!document.querySelector('script[src*="adsbygoogle"]')){const s=document.createElement('script');s.async=true;s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client='+A.client;s.crossOrigin='anonymous';document.head.appendChild(s);}try{(window.adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}}
+else if(A.carbonServe){el.innerHTML='';const s=document.createElement('script');s.async=true;s.id='_carbonads_js';s.src='//cdn.carbonads.com/carbon.js?serve='+A.carbonServe+'&placement='+A.carbonPlacement;el.appendChild(s);}}
+setInterval(()=>pollWatch(),300000);
+setLang('en');loadAds();renderPay();renderWatch();
+</script>
+</body>
+</html>
